@@ -1,3 +1,5 @@
+import Logger
+
 defmodule Servy.Handler do
   def handle(request) do
     request
@@ -43,7 +45,10 @@ defmodule Servy.Handler do
 
   def rewrite_path_captures(conv, nil), do: conv
 
-  def log(conv), do: IO.inspect(conv)
+  def log(conv) do
+    info(IO.inspect(conv))
+    conv
+  end
 
   def parse(request) do
     [method, path, _] =
