@@ -1,7 +1,7 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests."
 
-  import Servy.Plugins, only: [track: 1, log: 1, rewrite_path: 1]
+  import Servy.Plugins, only: [track: 1, log: 1, rewrite_path: 1, emojify: 1]
   import Servy.Parser, only: [parse: 1]
   import Servy.FileHandler, only: [handle_file: 2]
 
@@ -18,20 +18,6 @@ defmodule Servy.Handler do
     |> track
     |> format_response
   end
-
-  def emojify(%{status: 200, resp_body: resp_body} = conv) do
-    emojies = String.duplicate("🎉", 5)
-
-    body = """
-    #{emojies}
-    #{resp_body}
-    #{emojies}
-    """
-
-    %{conv | resp_body: body}
-  end
-
-  def emojify(conv), do: conv
 
   def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}

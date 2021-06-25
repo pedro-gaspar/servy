@@ -25,4 +25,18 @@ defmodule Servy.Plugins do
     Logger.info(IO.inspect(conv))
     conv
   end
+
+  def emojify(%{status: 200, resp_body: resp_body} = conv) do
+    emojies = String.duplicate("🎉", 5)
+
+    body = """
+    #{emojies}
+    #{resp_body}
+    #{emojies}
+    """
+
+    %{conv | resp_body: body}
+  end
+
+  def emojify(conv), do: conv
 end
