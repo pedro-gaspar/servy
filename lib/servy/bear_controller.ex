@@ -1,12 +1,17 @@
 defmodule Servy.BearController do
+  alias Servy.Bear
   alias Servy.Wildthings
+
+  def bear_item(bear) do
+    "<li>#{bear.name} - #{bear.type}</li>"
+  end
 
   def index(conv) do
     items =
       Wildthings.list_bears()
-      |> Enum.filter(fn b -> b.type == "Grizzly" end)
-      |> Enum.sort(fn b1, b2 -> b1.name <= b2.name end)
-      |> Enum.map(fn b -> "<li>#{b.name} - #{b.type}</li>" end)
+      |> Enum.filter(&Bear.is_grizzly/1)
+      |> Enum.sort(&Bear.order_asc_by_name/2)
+      |> Enum.map(&bear_item/1)
       |> Enum.join()
 
     %{conv | status: 200, resp_body: "<ul>#{items}</ul>"}
@@ -19,5 +24,9 @@ defmodule Servy.BearController do
 
   def create(conv, %{"name" => name, "type" => type}) do
     %{conv | status: 201, resp_body: "Create a #{type} bear named #{name}!"}
+  end
+
+  def delete(conv, %{"id" => _id}) do
+    %{conv | status: 403, resp_body: "Deleting a bear is forbidden!"}
   end
 end
