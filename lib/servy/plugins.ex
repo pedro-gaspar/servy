@@ -1,13 +1,15 @@
 defmodule Servy.Plugins do
   require Logger
 
+  alias Servy.Conv
+
   @doc "Logs 404 requests."
-  def track(%{status: 404, path: path} = conv) do
+  def track(%Conv{status: 404, path: path} = conv) do
     IO.puts("Warning #{path} is on the loose!")
     conv
   end
 
-  def track(conv), do: conv
+  def track(%Conv{} = conv), do: conv
 
   def rewrite_path(%{path: path} = conv) do
     regex = ~r{\/(?<thing>\w+)\?id=(?<id>\d+)}
@@ -15,18 +17,18 @@ defmodule Servy.Plugins do
     rewrite_path_captures(conv, captures)
   end
 
-  def rewrite_path_captures(conv, %{"thing" => thing, "id" => id}) do
+  def rewrite_path_captures(%Conv{} = conv, %{"thing" => thing, "id" => id}) do
     %{conv | path: "/#{thing}/#{id}"}
   end
 
-  def rewrite_path_captures(conv, nil), do: conv
+  def rewrite_path_captures(%Conv{} = conv, nil), do: conv
 
-  def log(conv) do
+  def log(%Conv{} = conv) do
     Logger.info(IO.inspect(conv))
     conv
   end
 
-  def emojify(%{status: 200, resp_body: resp_body} = conv) do
+  def emojify(%Conv{status: 200, resp_body: resp_body} = conv) do
     emojies = String.duplicate("🎉", 5)
 
     body = """
