@@ -1,7 +1,7 @@
-import Logger
-
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests."
+
+  require Logger
 
   @pages_path Path.expand("../../pages", __DIR__)
 
@@ -52,7 +52,7 @@ defmodule Servy.Handler do
   def rewrite_path_captures(conv, nil), do: conv
 
   def log(conv) do
-    info(IO.inspect(conv))
+    Logger.info(IO.inspect(conv))
     conv
   end
 
@@ -240,7 +240,31 @@ response = Servy.Handler.handle(request)
 IO.puts(response)
 
 request = """
-GET /pages/contact1 HTTP/1.1
+GET /pages/contact HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
+"""
+
+response = Servy.Handler.handle(request)
+
+IO.puts(response)
+
+request = """
+GET /pages/missing_page HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
+"""
+
+response = Servy.Handler.handle(request)
+
+IO.puts(response)
+
+request = """
+GET /xpto HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
