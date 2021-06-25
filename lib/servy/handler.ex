@@ -1,7 +1,8 @@
 defmodule Servy.Handler do
   @moduledoc "Handles HTTP requests."
 
-  require Logger
+  import Servy.Plugins, only: [track: 1, log: 1, rewrite_path: 1]
+  import Servy.Parser, only: [parse: 1]
 
   @pages_path Path.expand("../../pages", __DIR__)
 
@@ -30,41 +31,6 @@ defmodule Servy.Handler do
   end
 
   def emojify(conv), do: conv
-
-  @doc "Logs 404 requests."
-  def track(%{status: 404, path: path} = conv) do
-    IO.puts("Warning #{path} is on the loose!")
-    conv
-  end
-
-  def track(conv), do: conv
-
-  def rewrite_path(%{path: path} = conv) do
-    regex = ~r{\/(?<thing>\w+)\?id=(?<id>\d+)}
-    captures = Regex.named_captures(regex, path)
-    rewrite_path_captures(conv, captures)
-  end
-
-  def rewrite_path_captures(conv, %{"thing" => thing, "id" => id}) do
-    %{conv | path: "/#{thing}/#{id}"}
-  end
-
-  def rewrite_path_captures(conv, nil), do: conv
-
-  def log(conv) do
-    Logger.info(IO.inspect(conv))
-    conv
-  end
-
-  def parse(request) do
-    [method, path, _] =
-      request
-      |> String.split("\n")
-      |> List.first()
-      |> String.split(" ")
-
-    %{method: method, path: path, resp_body: "", status: nil}
-  end
 
   def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
