@@ -186,6 +186,122 @@ defmodule HandlerTest do
            """
   end
 
+  test "GET /api/bears" do
+    request = """
+    GET /api/bears HTTP/1.1\r
+    Host: example.com\r
+    User-Agent: ExampleBrowser/1.0\r
+    Accept: */*\r
+    \r
+    """
+
+    response = handle(request)
+
+    expected_response = """
+    HTTP/1.1 200 OK\r
+    Content-Type: application/json\r
+    Content-Length: 605\r
+    \r
+    [{"hibernating":true,"id":1,"name":"Teddy","type":"Brown"},
+    {"hibernating":false,"id":2,"name":"Smokey","type":"Black"},
+    {"hibernating":false,"id":3,"name":"Paddington","type":"Brown"},
+    {"hibernating":true,"id":4,"name":"Scarface","type":"Grizzly"},
+    {"hibernating":false,"id":5,"name":"Snow","type":"Polar"},
+    {"hibernating":false,"id":6,"name":"Brutus","type":"Grizzly"},
+    {"hibernating":true,"id":7,"name":"Rosie","type":"Black"},
+    {"hibernating":false,"id":8,"name":"Roscoe","type":"Panda"},
+    {"hibernating":true,"id":9,"name":"Iceman","type":"Polar"},
+    {"hibernating":false,"id":10,"name":"Kenai","type":"Grizzly"}]
+    """
+
+    assert remove_whitespace(response) == remove_whitespace(expected_response)
+  end
+
+  test "POST /api/bears" do
+    request = """
+    POST /api/bears HTTP/1.1\r
+    Host: example.com\r
+    User-Agent: ExampleBrowser/1.0\r
+    Accept: */*\r
+    Content-Type: application/json\r
+    Content-Length: 21\r
+    \r
+    {"name": "Breezly", "type": "Polar"}
+    """
+
+    response = handle(request)
+
+    assert response == """
+           HTTP/1.1 201 Created\r
+           Content-Type: text/html\r
+           Content-Length: 35\r
+           \r
+           Created a Polar bear named Breezly!
+           """
+  end
+
+  test "GET /pages/faq" do
+    request = """
+    GET /pages/faq HTTP/1.1\r
+    Host: example.com\r
+    User-Agent: ExampleBrowser/1.0\r
+    Accept: */*\r
+    Content-Type: text/html\r
+    \r
+    """
+
+    response = handle(request)
+
+    expected_response = """
+    HTTP/1.1 200 OK\r
+    Content-Type: text/html\r
+    Content-Length: 637\r
+    \r
+    <h1>Frequently Asked Questions</h1>
+    <ul>
+      <li>
+        <p><strong>Have your eally seen Bigfoot?</strong></p>
+        <p>Yes! In this<a href="https://www.youtube.com/watch?v=v77ijOO8oAk"> totally believable video</a>!</p>
+      </li>
+      <li>
+        <p><strong>No,I mean seen Bigfoot <em>on the refuge</em>?</strong></p>
+        <p>Oh! Not yet, but we’re still looking…</p>
+        </li><li><p><strong>Can you just show me some code?</strong></p>
+        <p>Sure! Here’s some Elixir:</p>
+        <pre><codeclass=\"elixir\">[&quot;Bigfoot&quot;,&quot;Yeti&quot;,&quot;Sasquatch&quot;]|&gt;Enum.random()</code></pre>
+      </li>
+    </ul>
+    """
+
+    assert remove_whitespace(response) == remove_whitespace(expected_response)
+  end
+
+  test "GET /pages/about" do
+    request = """
+    GET /pages/about HTTP/1.1\r
+    Host: example.com\r
+    User-Agent: ExampleBrowser/1.0\r
+    Accept: */*\r
+    Content-Type: text/html\r
+    \r
+    """
+
+    response = handle(request)
+
+    expected_response = """
+    HTTP/1.1 200 OK\r
+    Content-Type: text/html\r
+    Content-Length: 102\r
+    \r
+    <h1>Clark's Wildthings Refuge</h1>
+    <blockquote>
+    When we contemplate the whole globe...
+    </blockquote>
+    """
+
+    assert remove_whitespace(response) == remove_whitespace(expected_response)
+  end
+
   defp remove_whitespace(text) do
     String.replace(text, ~r{\s}, "")
   end
