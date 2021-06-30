@@ -2,29 +2,35 @@ defmodule HttpServerTest do
   use ExUnit.Case
 
   alias Servy.HttpServer
-  alias Servy.HttpClient
 
-  test "Get bears response from http server" do
-    request = """
-    GET /wildthings HTTP/1.1\r
-    Host: example.com\r
-    User-Agent: ExampleBrowser/1.0\r
-    Accept: */*\r
-    \r
-    """
-
-    expected_response = """
-    HTTP/1.1 200 OK\r
-    Content-Type: text/html\r
-    Content-Length: 20\r
-    \r
-    Bears, Lions, Tigers
-    """
-
+  setup_all do
     pid = spawn(fn -> HttpServer.start(4000) end)
 
-    response = HttpClient.send_request(request)
+    on_exit(fn -> Process.exit(pid, :normal) end)
+  end
 
-    assert response == expected_response
+  test "Concurrently get 5 bears responses from http server" do
+    {:ok, response} = HTTPoison.get("http://localhost:4000/wildthings")
+    assert response.status_code == 200
+    assert response.body == "Bears, Lions, Tigers"
+  end
+
+  test "Get bears response from http server" do
+    caller = self()
+
+    for _ <- 1..5 do
+      spawn(fn ->
+        {:ok, response} = HTTPoison.get("http://localhost:4000/wildthings")
+        send(caller, {:ok, response})
+      end)
+    end
+
+    for _ <- 1..5 do
+      receive do
+        {:ok, response} ->
+          assert response.status_code == 200
+          assert response.body == "Bears, Lions, Tigers"
+      end
+    end
   end
 end
