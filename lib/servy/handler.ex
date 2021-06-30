@@ -3,9 +3,11 @@ defmodule Servy.Handler do
 
   import Servy.Plugins, only: [track: 1, log: 1, rewrite_path: 1]
   import Servy.Parser, only: [parse: 1]
-  import Servy.FileHandler, only: [handle_pages_file: 2, pages_file_path: 2, handle_file: 2]
+  import Servy.FileHandler, only: [handle_pages_file: 2, handle_file: 2]
   alias Servy.Conv
   alias Servy.BearController
+  alias Servy.VideoCam
+  alias Servy.Fetcher
 
   @pages_path Path.expand("pages", File.cwd!())
 
@@ -19,6 +21,19 @@ defmodule Servy.Handler do
     |> track
     |> put_resp_content_length
     |> format_response
+  end
+
+  def route(%Conv{method: "GET", path: "/sensors"} = conv) do
+    pid4 = Fetcher.async(fn -> Servy.Tracker.get_location("bigfoot") end)
+
+    snapshots =
+      ["cam-1", "cam-2", "cam-3"]
+      |> Enum.map(&VideoCam.get_snapshot/1)
+      |> Enum.map(&Fetcher.get_result/1)
+
+    where_is_bigfoot = Fetcher.get_result(pid4)
+
+    %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
@@ -69,13 +84,13 @@ defmodule Servy.Handler do
     handle_pages_file(conv, file)
   end
 
-  def route(%Conv{ method: "GET", path: "/hibernate/" <> time } = conv) do
-    time |> String.to_integer |> :timer.sleep
+  def route(%Conv{method: "GET", path: "/hibernate/" <> time} = conv) do
+    time |> String.to_integer() |> :timer.sleep()
 
-    %{ conv | status: 200, resp_body: "Awake!" }
+    %{conv | status: 200, resp_body: "Awake!"}
   end
 
-  def route(%Conv{ method: "GET", path: "/kaboom" }) do
+  def route(%Conv{method: "GET", path: "/kaboom"}) do
     raise "Kaboom!"
   end
 
