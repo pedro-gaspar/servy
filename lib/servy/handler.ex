@@ -3,6 +3,7 @@ defmodule Servy.Handler do
 
   import Servy.Plugins, only: [track: 1, log: 1, rewrite_path: 1]
   import Servy.Parser, only: [parse: 1]
+  import Servy.View, only: [render: 3]
   import Servy.FileHandler, only: [handle_pages_file: 2, handle_file: 2]
   alias Servy.Conv
   alias Servy.BearController
@@ -32,7 +33,7 @@ defmodule Servy.Handler do
 
     where_is_bigfoot = Task.await(task)
 
-    %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
+    render(conv, "sensors.eex", snapshots: snapshots, location: where_is_bigfoot)
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
