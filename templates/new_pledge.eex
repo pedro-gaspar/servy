@@ -1,0 +1,15 @@
+<h1>Create a Pledge</h1>
+
+<form action="/pledges" method="POST">
+  <div>
+    <strong>Name</strong><br />
+    <input type="text" name="name" />
+  </div>
+
+  <div>
+    <strong>Amount</strong><br />
+    <input type="text" name="amount" />
+  </div>
+
+  <input type="submit" value="Create Pledge"/>
+</form>
