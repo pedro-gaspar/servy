@@ -16,21 +16,20 @@ defmodule HttpServerTest do
   end
 
   test "Get bears response from http server" do
-    caller = self()
-
-    for _ <- 1..5 do
-      spawn(fn ->
-        {:ok, response} = HTTPoison.get("http://localhost:4000/wildthings")
-        send(caller, {:ok, response})
+    urls =
+      [
+        "http://localhost:4000/wildthings",
+        "http://localhost:4000/bears",
+        "http://localhost:4000/bears/1",
+        "http://localhost:4000/wildlife",
+        "http://localhost:4000/api/bears"
+      ]
+      |> Enum.map(&Task.async(fn -> get_wildthings(&1) end))
+      |> Enum.map(&Task.await/1)
+      |> Enum.map(fn {:ok, response} ->
+        assert response.status_code == 200
       end)
-    end
-
-    for _ <- 1..5 do
-      receive do
-        {:ok, response} ->
-          assert response.status_code == 200
-          assert response.body == "Bears, Lions, Tigers"
-      end
-    end
   end
+
+  defp get_wildthings(url), do: HTTPoison.get(url)
 end
