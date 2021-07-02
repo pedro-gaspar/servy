@@ -1,60 +1,50 @@
 defmodule Servy.PledgeServer do
   @name __MODULE__
 
+  alias Servy.GenericServer
+
   # Client interface functions
   def start(initial_state \\ []) do
-    IO.puts("Starting the pledge server...")
-    pid = spawn(Servy.PledgeServer, :listen_loop, [initial_state])
-    Process.register(pid, @name)
-    pid
+    GenericServer.start(__MODULE__, initial_state, @name)
   end
 
   def create_pledge(name, amount) do
-    send(@name, {self(), :create_pledge, name, amount})
-
-    receive do
-      {:response, status} -> status
-    end
+    GenericServer.call(@name, {:create_pledge, name, amount})
   end
 
   def recent_pledges() do
-    send(@name, {self(), :recent_pledges})
-
-    receive do
-      {:response, pledges} -> pledges
-    end
+    GenericServer.call(@name, :recent_pledges)
   end
 
+  @spec total_pledged :: any
   def total_pledged() do
-    send(@name, {self(), :total_pledged})
-
-    receive do
-      {:response, total} -> total
-    end
+    GenericServer.call(@name, :total_pledged)
   end
 
-  # Server
-  def listen_loop(state) do
-    receive do
-      {sender, :create_pledge, name, amount} ->
-        {:ok, id} = send_pledge_to_service(name, amount)
-        most_recent_pledges = Enum.take(state, 2)
-        new_state = [{name, amount} | most_recent_pledges]
-        send(sender, {:response, id})
-        listen_loop(new_state)
+  def clear() do
+    GenericServer.cast(@name, :clear)
+  end
 
-      {sender, :recent_pledges} ->
-        send(sender, {:response, state})
-        listen_loop(state)
+  # Server callbacks
 
-      {sender, :total_pledged} ->
-        total = state |> Enum.map(&elem(&1, 1)) |> Enum.sum()
-        send(sender, {:response, total})
-        listen_loop(state)
+  def handle_call({:create_pledge, name, amount}, state) do
+    {:ok, id} = send_pledge_to_service(name, amount)
+    most_recent_pledges = Enum.take(state, 2)
+    new_state = [{name, amount} | most_recent_pledges]
+    {id, new_state}
+  end
 
-      unexpected ->
-        IO.puts("Unexpected message: #{inspect(unexpected)}")
-    end
+  def handle_call(:recent_pledges, state) do
+    {state, state}
+  end
+
+  def handle_call(:total_pledged, state) do
+    total = state |> Enum.map(&elem(&1, 1)) |> Enum.sum()
+    {total, state}
+  end
+
+  def handle_cast(:clear, _state) do
+    []
   end
 
   defp send_pledge_to_service(_name, _amount) do

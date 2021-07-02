@@ -1,57 +1,44 @@
 defmodule Servy.FourOhFourCounter do
   @name __MODULE__
 
-  # Client functions
+  alias Servy.GenericServer
+
+  # Client interface functions
   def start(initial_state \\ %{}) do
-    pid = spawn(Servy.FourOhFourCounter, :counter_loop, [initial_state])
-    Process.register(pid, @name)
-    pid
+    GenericServer.start(__MODULE__, initial_state, @name)
   end
 
   def bump_count(path) do
-    send(@name, {self(), :bump_count, path})
-
-    receive do
-      {:response, count} -> count
-    end
+    GenericServer.call(@name, {:bump_count, path})
   end
 
   def get_count(path) do
-    send(@name, {self(), :get_count, path})
-
-    receive do
-      {:response, count} -> count
-    end
+    GenericServer.call(@name, {:get_count, path})
   end
 
   def get_counts() do
-    send(@name, {self(), :get_counts})
-
-    receive do
-      {:response, counts} -> counts
-    end
+    GenericServer.call(@name, :get_counts)
   end
 
-  # Server functions
-  @spec counter_loop(any) :: :ok | <<>>
-  def counter_loop(state) do
-    receive do
-      {sender, :bump_count, path} ->
-        new_state = Map.update(state, path, 1, &(&1 + 1))
-        send(sender, {:response, new_state[path]})
-        counter_loop(new_state)
+  def clear() do
+    GenericServer.cast(@name, :clear)
+  end
 
-      {sender, :get_count, path} ->
-        send(sender, {:response, Map.get(state, path, 0)})
-        counter_loop(state)
+  # Server callbacks
+  def handle_call({:bump_count, path}, state) do
+    new_state = Map.update(state, path, 1, &(&1 + 1))
+    {new_state[path], new_state}
+  end
 
-      {sender, :get_counts} ->
-        send(sender, {:response, state})
-        counter_loop(state)
+  def handle_call({:get_count, path}, state) do
+    {Map.get(state, path, 0), state}
+  end
 
-      unexpected ->
-        IO.puts("Unexpected message: #{inspect(unexpected)}")
-        counter_loop(state)
-    end
+  def handle_call(:get_counts, state) do
+    {state, state}
+  end
+
+  def handle_cast(:clear, _state) do
+    %{}
   end
 end

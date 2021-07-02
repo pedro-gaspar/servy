@@ -16,19 +16,18 @@ defmodule HttpServerTest do
   end
 
   test "Get bears response from http server" do
-    urls =
-      [
-        "http://localhost:4000/wildthings",
-        "http://localhost:4000/bears",
-        "http://localhost:4000/bears/1",
-        "http://localhost:4000/wildlife",
-        "http://localhost:4000/api/bears"
-      ]
-      |> Enum.map(&Task.async(fn -> get_wildthings(&1) end))
-      |> Enum.map(&Task.await/1)
-      |> Enum.map(fn {:ok, response} ->
-        assert response.status_code == 200
-      end)
+    [
+      "http://localhost:4000/wildthings",
+      "http://localhost:4000/bears",
+      "http://localhost:4000/bears/1",
+      "http://localhost:4000/wildlife",
+      "http://localhost:4000/api/bears"
+    ]
+    |> Enum.map(&Task.async(fn -> get_wildthings(&1) end))
+    |> Enum.map(&Task.await/1)
+    |> Enum.map(fn {:ok, response} ->
+      assert response.status_code == 200
+    end)
   end
 
   defp get_wildthings(url), do: HTTPoison.get(url)
