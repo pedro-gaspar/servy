@@ -4,8 +4,8 @@ defmodule Servy.FourOhFourCounter do
   use GenServer
 
   # Client interface functions
-  def start(initial_state \\ %{}) do
-    GenServer.start(__MODULE__, initial_state, name: @name)
+  def start_link(initial_state \\ %{}) do
+    GenServer.start_link(__MODULE__, initial_state, name: @name)
   end
 
   def bump_count(path) do
@@ -22,6 +22,10 @@ defmodule Servy.FourOhFourCounter do
 
   def clear() do
     GenServer.cast(@name, :clear)
+  end
+
+  def init(state) do
+    {:ok, state}
   end
 
   # Server callbacks

@@ -7,7 +7,6 @@ defmodule Servy.Handler do
   import Servy.FileHandler, only: [handle_pages_file: 2, handle_file: 2]
   alias Servy.Conv
   alias Servy.BearController
-  alias Servy.VideoCam
 
   @pages_path Path.expand("pages", File.cwd!())
 

@@ -4,7 +4,7 @@ defmodule PledgeServerTest do
   alias Servy.PledgeServer
 
   test "gets the 3 most recent pledges and totals" do
-    {:ok, pid} = PledgeServer.start()
+    {:ok, pid} = PledgeServer.start_link([])
 
     PledgeServer.create_pledge("Pedro", 123)
     PledgeServer.create_pledge("Maria", 456)
